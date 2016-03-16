@@ -163,9 +163,13 @@ local function split_fmt(fmt)
    end
 end
 
+local _d = { year=1969,day=1,month=1,hour=0,min=0,sec=0 }
 -- Parses the string, s, according to the format, fmt.
-local function parse_date(s, fmt)
-   local matched, d = '', {year=1969,day=1,month=1,hour=0,min=0,sec=0}
+local function parse_date(s, fmt, din )
+   local matched, d = '', din or {}
+   for k,v in next,_d do
+	d[k] = d[k] or _d[k]
+   end
    local function fail(what, pattern)
       if pattern then what = what..' ('..pattern..')' end
       if matched ~= '' then what = what..' after "'..matched..'"' end
@@ -276,7 +280,7 @@ end
 --
 
 dateparse = {}
-function dateparse.parse(s,fmt)
+function dateparse.parse(s,fmt, din)
    if type(s) ~= 'string' or s == '' or s == 'NULL' then
       return nil
    end
@@ -290,7 +294,7 @@ function dateparse.parse(s,fmt)
    fmt = strip(fmt)
    local all_errors = {}
    for i,fmt in ipairs(expand_fmt(fmt)) do
-      local ok, result = pcall(parse_date, s, fmt)
+      local ok, result = pcall(parse_date, s, fmt, din)
       if ok then return mktime(result,s) end
       local clean_message = result:match('^.-:.-:%s*(.*)') or result
       all_errors[i] = '"'..fmt..'" '..clean_message
